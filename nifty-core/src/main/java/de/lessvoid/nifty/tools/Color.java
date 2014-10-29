@@ -89,6 +89,14 @@ public class Color {
     this.alpha = newAlpha;
     this.colorString = fromRGBA(red, green, blue, alpha);
   }
+  
+  /**
+   * Create a color from component array.
+   * @param rgba a float array of length 4 with RGBA components.
+   */
+  public Color(final float[] rgba) {
+  	this(rgba[0], rgba[1], rgba[2], rgba[3]);
+  }
 
   /**
    * Create a color from an encoded int value alpha + R + G + B.

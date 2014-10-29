@@ -43,6 +43,10 @@ public class JoglInputSystem implements InputSystem, MouseListener, KeyListener 
       
   public JoglInputSystem(@Nonnull final Window newtWindow) {
 	  this.niftyNewtWindow = newtWindow;
+	  
+	  // add JoglInputSystem to Window listeners
+	  newtWindow.addKeyListener(this);
+	  newtWindow.addMouseListener(this);
   }
   
   private Window niftyNewtWindow;
