@@ -81,8 +81,7 @@ public class QuadGradientPaint implements Paint {
 			float[] color = new float[4];
 			for (int j=0; j < h; j++) {
 				for (int i=0; i < w; i++) {
-					if (!deviceBounds.contains(i, j) || !userBounds.contains(i, j))
-						continue;
+					if (!deviceBounds.contains(i, j) || !userBounds.contains(i, j)) continue;
 					double distC0 = Math.max(Point.distance(i, j, 0, 0), radius);
 					float ratioC0 = (float) (1 - (distC0 / radius));
 					double distC1 = Math.max(Point.distance(i, j, 0, h), radius);

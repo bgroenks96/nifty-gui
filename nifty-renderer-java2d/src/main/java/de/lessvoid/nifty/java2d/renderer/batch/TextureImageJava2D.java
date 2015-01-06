@@ -42,7 +42,7 @@ class TextureImageJava2D implements TextureJava2D {
 	 * @param height
 	 * @param priority 0 < priority < 1 where 0 is never hardware accelerated and 1 is max priority
 	 */
-	TextureImageJava2D(final ImageFactory imageFactory, final int width, final int height, float priority) {
+	TextureImageJava2D(@Nonnull final ImageFactory imageFactory, final int width, final int height, float priority) {
 		this.id = idTick++;
 		this.width = width;
 		this.height = height;
@@ -67,7 +67,7 @@ class TextureImageJava2D implements TextureJava2D {
 	}
 
 	@Override
-	public void writeImageToTexture(final Image img, final int x, final int y) {
+	public void writeImageToTexture(@Nonnull final Image img, final int x, final int y) {
 		imgRef = (Java2DImage) imageFactory.create(imageFactory.asByteBuffer(img), img.getWidth(), img.getHeight());
 		if (texImg == null) {
 			initTextureImage(width, height);
@@ -97,7 +97,7 @@ class TextureImageJava2D implements TextureJava2D {
 	}
 	
 	@Override
-	public void clear(final Color clearColor) {
+	public void clear(@Nonnull final Color clearColor) {
 		
 	}
 	

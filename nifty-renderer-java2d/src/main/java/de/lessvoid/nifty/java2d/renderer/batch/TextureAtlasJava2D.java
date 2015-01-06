@@ -6,6 +6,9 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,8 +31,12 @@ import de.lessvoid.nifty.render.batch.spi.ImageFactory;
  *
  */
 class TextureAtlasJava2D implements TextureJava2D {
-	
+
+	private static final Logger log = Logger.getLogger(TextureAtlasJava2D.class.getName());
+
 	private static volatile int texIdTick = 0xffff;
+
+	private static final int SNAPSHOT_THREAD_POOL_SIZE = 1;
 
 	/**
 	 * 
@@ -38,7 +45,7 @@ class TextureAtlasJava2D implements TextureJava2D {
 
 	@Nonnull
 	private final ImageFactory imageFactory;
-	
+
 	private float priority;
 
 	@Nullable
@@ -68,7 +75,7 @@ class TextureAtlasJava2D implements TextureJava2D {
 	public int getID() {
 		return id;
 	}
-	
+
 	@Override
 	public int getWidth() {
 		return width;
@@ -78,9 +85,9 @@ class TextureAtlasJava2D implements TextureJava2D {
 	public int getHeight() {
 		return height;
 	}
-	
+
 	@Override
-	public void writeImageToTexture(final Image img, final int x, final int y) {
+	public void writeImageToTexture(@Nonnull final Image img, final int x, final int y) {
 		Java2DImage j2dImage = (Java2DImage) imageFactory.create(imageFactory.asByteBuffer(img), img.getWidth(), img.getHeight());
 		if (texVI == null) {
 			initTextureVI(width, height);
@@ -89,7 +96,7 @@ class TextureAtlasJava2D implements TextureJava2D {
 		writeImageDataToSurface(j2dImage.getBufferedImage(), x, y);
 		updateSnapshot();
 	}
-	
+
 	@Override
 	public void drawTexture(
 			@Nonnull final Graphics2D drawGraphics, 
@@ -110,9 +117,9 @@ class TextureAtlasJava2D implements TextureJava2D {
 		if (priority >= 0 && priority <= 1)
 			this.priority = priority;
 	}
-	
+
 	@Override
-	public void clear(final Color color) {
+	public void clear(@Nonnull final Color color) {
 		if (texVI == null) {
 			initTextureVI(width, height);
 		}
@@ -122,7 +129,7 @@ class TextureAtlasJava2D implements TextureJava2D {
 		g2d.dispose();
 		updateSnapshot();
 	}
-	
+
 	@Override
 	public void dispose() {
 		texVI.flush();
@@ -130,29 +137,33 @@ class TextureAtlasJava2D implements TextureJava2D {
 		texVI = null;
 		snapshot = null;
 	}
-	
+
 	private void validate() {
-		if (texVI == null) {
-			return;
-		}
+		if (texVI == null) return;
+
 		GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-		if (device == null)
-			throw new RuntimeException("TextureJava2D: environment returned null GraphisDevice");
+		if (device == null) throw new RuntimeException("TextureJava2D: environment returned null GraphicsDevice");
 		do {
 			int check = texVI.validate(device.getDefaultConfiguration());
 			switch(check) {
 			case VolatileImage.IMAGE_INCOMPATIBLE:
+				log.fine("texture (id="+id+") -> IMAGE_INCOMPATIBLE - re-initializing image buffer");
 				initTextureVI(width, height);
 			case VolatileImage.IMAGE_RESTORED:
+				log.fine("texture (id="+id+") -> IMAGE_RESTORED - reloading texture data from snapshot");
 				if (snapshot != null)
 					writeImageDataToSurface(snapshot, 0, 0);
+				break;
+			default:
+				// nothing needs to be done
 			}
 		} while (texVI.contentsLost());
 	}
 
 	private void initTextureVI(final int width, final int height) {
-		if (texVI != null)
+		if (texVI != null) {
 			texVI.flush();
+		}
 		texVI = getImageFactoryInternal().createNativeVolatileImage(width, height);
 		texVI.setAccelerationPriority(priority);
 	}
@@ -162,18 +173,35 @@ class TextureAtlasJava2D implements TextureJava2D {
 		g2d.drawImage(img, x, y, null);
 		g2d.dispose();
 	}
-	
-	private void updateSnapshot() {
-		if (snapshot != null)
-			snapshot.flush();
-		snapshot = texVI.getSnapshot();
-		snapshot.setAccelerationPriority(0);
-	}
 
 	private Java2DImageFactory getImageFactoryInternal() {
-		if (imageFactory instanceof Java2DImageFactory)
+		if (imageFactory instanceof Java2DImageFactory) {
 			return (Java2DImageFactory) imageFactory;
-		else
+		} else {
 			return new Java2DImageFactory();
+		}
+	}
+
+	/*
+	 * We use a java.util.concurrent.ExecutorService to handle updating the BufferedImage snapshot.
+	 * This saves the renderer thread from having to consume valuable frame time to update the
+	 * snapshot; there should not be any synchronization issues since getSnapshot() is a read-only operation.
+	 * A thread pool of size n=1 should be used to ensure that update requests are executed asynchronously.
+	 */
+
+	private final ExecutorService snapshotThreadPool = Executors.newFixedThreadPool(SNAPSHOT_THREAD_POOL_SIZE);
+
+	private void updateSnapshot() {
+		final Runnable syncUpdateSnapshot = new Runnable() {
+			@Override
+			public void run() {
+				if (snapshot != null) {
+					snapshot.flush();
+				}
+				snapshot = texVI.getSnapshot();
+				snapshot.setAccelerationPriority(0);
+			}
+		};
+		snapshotThreadPool.execute(syncUpdateSnapshot);
 	}
 }

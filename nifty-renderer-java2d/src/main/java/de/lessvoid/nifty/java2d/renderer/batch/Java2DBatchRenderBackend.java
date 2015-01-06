@@ -95,7 +95,7 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 		});
 	}
 
-	private void initAwtCanvas(final Canvas awtCanvas, final int numBuffs) throws AWTException {
+	private void initAwtCanvas(@Nonnull final Canvas awtCanvas, final int numBuffs) throws AWTException {
 		log.fine("initializing AWT canvas");
 		this.canvas = awtCanvas;
 		BufferCapabilities capabilities = new BufferCapabilities(new ImageCapabilities(true),
@@ -146,7 +146,7 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 	}
 
 	@Override
-	public void enableMouseCursor(final MouseCursor mouseCursor) {
+	public void enableMouseCursor(@Nonnull final MouseCursor mouseCursor) {
 		log.fine("enableMouseCursor");
 		this.mouseCursor = mouseCursor;
 		mouseCursor.enable();
@@ -192,7 +192,7 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 	}
 
 	@Override
-	public void addImageToAtlas(final Image image, final int atlasX, final int atlasY,
+	public void addImageToAtlas(@Nonnull final Image image, final int atlasX, final int atlasY,
 			final int atlasTextureId) {
 		log.fine("addImageToAtlas");
 		bindTexture(atlasTextureId);
@@ -204,7 +204,7 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 	}
 
 	@Override
-	public int createNonAtlasTexture(final Image image) {
+	public int createNonAtlasTexture(@Nonnull final Image image) {
 		log.fine("createNonAtlasTexture");
 		int texID = createTextureInternal(image.getWidth(), image.getHeight());
 		nonAtlasTextures.get(texID).writeImageToTexture(image, 0, 0);
@@ -256,7 +256,7 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 	}
 
 	@Override
-	public void beginBatch(final BlendMode blendMode, final int textureId) {
+	public void beginBatch(@Nonnull final BlendMode blendMode, final int textureId) {
 		log.fine("beginBatch");
     currentBatch = createNewBatch();
     addBatch(currentBatch);
@@ -273,7 +273,7 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 	}
 
 	@Override
-	public void removeImageFromAtlas(final Image image, final int atlasX, final int atlasY,
+	public void removeImageFromAtlas(@Nonnull final Image image, final int atlasX, final int atlasY,
 			int imageWidth, int imageHeight, int atlasTextureId) {
     if (! shouldFillRemovedImagesInAtlas) {
       return;
@@ -318,10 +318,11 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 		}
 		log.fine("bind texture " + textureId);
 		TextureJava2D tex2d = (atlasTextures.containsKey(textureId)) ? atlasTextures.get(textureId) : nonAtlasTextures.get(textureId);
-		if (tex2d == null)
+		if (tex2d == null) {
 			log.warning("texture (id=" + textureId + ") not found - texture binding unchanged");
-		else
+		} else {
 			boundTexture = tex2d;
+		}
 	}
 
 	private void deleteBatches() {
@@ -452,7 +453,7 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 	}
 
 	@Nullable
-	private MouseCursor createCursor (final String filename, final int hotspotX, final int hotspotY) {
+	private MouseCursor createCursor (@Nonnull final String filename, final int hotspotX, final int hotspotY) {
 		try {
 			assert resourceLoader != null;
 			cursorCache.put(filename, cursorFactory.create(filename, hotspotX, hotspotY, resourceLoader));
@@ -464,7 +465,7 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 	}
 	
 	@Nonnull
-	private java.awt.Color niftyColorToAwt(final Color niftyColor) {
+	private java.awt.Color niftyColorToAwt(@Nonnull final Color niftyColor) {
 		return new java.awt.Color(niftyColor.getRed(), niftyColor.getBlue(), 
 				niftyColor.getGreen(), niftyColor.getAlpha());
 	}
@@ -506,10 +507,11 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 			bindTexture(textureId);
 			Graphics2D g2d = (Graphics2D) canvas.getBufferStrategy().getDrawGraphics();
 			g2d.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-			if (shouldUseHighQualityTextures)
+			if (shouldUseHighQualityTextures) {
 				g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			else
+			} else {
 				g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+			}
 
 			for (int i=0; i < primitiveCount; i++) {
 				BatchQuad quad = quads[i];
@@ -527,8 +529,9 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 							quad.ty,
 							quad.twidth,
 							quad.theight);
-				} else
+				} else {
 					log.fine("batch internal: no tex bound");
+				}
 			}
 			g2d.dispose();
 		}
@@ -539,10 +542,21 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 		}
 
 		@Override
-		public void addQuad(float x, float y, float width, float height,
-				Color color1, Color color2, Color color3, Color color4, float textureX,
-				float textureY, float textureWidth, float textureHeight) {
-			QuadGradientPaint quadPaint = new QuadGradientPaint(color1, color2, color3, color4);
+		public void addQuad(
+				float x, 
+				float y, 
+				float width, 
+				float height,
+				@Nonnull Color color1, 
+				@Nonnull Color color2, 
+				@Nonnull Color color3, 
+				@Nonnull Color color4, 
+				float textureX,
+				float textureY, 
+				float textureWidth, 
+				float textureHeight) {
+			//QuadGradientPaint quadPaint = new QuadGradientPaint(color1, color2, color3, color4);
+			Paint quadPaint = new java.awt.Color(color1.getRed(), color1.getGreen(), color1.getBlue(), color1.getAlpha());
 			quads[primitiveCount++] = new BatchQuad(
 					(int)x,
 					(int)y,
@@ -558,8 +572,8 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 
 	private class BatchQuad {
 		int x, y, width, height, tx, ty, twidth, theight;
-		QuadGradientPaint quadPaint;
-		BatchQuad(int x, int y, int width, int height, int tx, int ty, int twidth, int theight, QuadGradientPaint quadPaint) {
+		Paint quadPaint;
+		BatchQuad(int x, int y, int width, int height, int tx, int ty, int twidth, int theight, @Nonnull Paint quadPaint) {
 			this.x = x; this.y = y;
 			this.width = width; this.height = height;
 			this.tx = tx; this.ty = ty;

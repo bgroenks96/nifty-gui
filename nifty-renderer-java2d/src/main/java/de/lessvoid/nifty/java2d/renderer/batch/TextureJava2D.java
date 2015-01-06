@@ -5,6 +5,8 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 
+import javax.annotation.Nonnull;
+
 import de.lessvoid.nifty.render.batch.spi.BatchRenderBackend;
 import de.lessvoid.nifty.render.batch.spi.BatchRenderBackend.Image;
 
@@ -25,7 +27,7 @@ interface TextureJava2D {
 	 * @param x
 	 * @param y
 	 */
-	void writeImageToTexture(Image image, int x, int y);
+	void writeImageToTexture(@Nonnull Image image, int x, int y);
 	/**
 	 * Draws this {@link TextureJava2D} to the given {@link Graphics2D}.
 	 * Note that this method <b>will only</b> call <code>drawImage</code> on
@@ -42,7 +44,7 @@ interface TextureJava2D {
 	 * @param srcHeight
 	 */
 	void drawTexture(
-			Graphics2D drawGraphics,
+			@Nonnull Graphics2D drawGraphics,
 			int destX,
 			int destY,
 			int destWidth,
@@ -62,7 +64,7 @@ interface TextureJava2D {
 	 * image resources if they have not already been initialized.
 	 * @param clearColor the color that should be painted over the image to clear it
 	 */
-	void clear(Color clearColor);
+	void clear(@Nonnull Color clearColor);
 	/**
 	 * Releases cached resources currently being held by this TextureJava2D's backing
 	 * image buffers and sets internal references to null. While it is generally expected
