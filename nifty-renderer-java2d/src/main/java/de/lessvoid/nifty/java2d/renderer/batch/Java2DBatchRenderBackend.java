@@ -2,6 +2,7 @@ package de.lessvoid.nifty.java2d.renderer.batch;
 
 import java.awt.*;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -35,7 +36,7 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 
 	@Nonnull
 	private static final Logger log = Logger.getLogger(Java2DBatchRenderBackend.class.getName());
-	
+
 	@Nonnull
 	private static final Color ATLAS_CLEAR_COLOR = Color.WHITE;
 
@@ -76,10 +77,10 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 	private boolean shouldFillRemovedImagesInAtlas = false;
 
 	public Java2DBatchRenderBackend(
-			@Nonnull final Canvas awtCanvas, 
-			@Nonnull final int numBuffs, 
-			@Nonnull final ImageFactory imageFactory, 
-			@Nonnull final BufferFactory bufferFactory, 
+			@Nonnull final Canvas awtCanvas,
+			@Nonnull final int numBuffs,
+			@Nonnull final ImageFactory imageFactory,
+			@Nonnull final BufferFactory bufferFactory,
 			@Nonnull final MouseCursorFactory cursorFactory) throws AWTException {
 
 		initAwtCanvas(awtCanvas, numBuffs);
@@ -225,18 +226,18 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 
 	@Override
 	public void addQuad(
-			final float x, 
-			final float y, 
-			final float width, 
+			final float x,
+			final float y,
+			final float width,
 			final float height,
-			@Nonnull final Color color1, 
-			@Nonnull final Color color2, 
-			@Nonnull final Color color3, 
-			@Nonnull final Color color4, 
+			@Nonnull final Color color1,
+			@Nonnull final Color color2,
+			@Nonnull final Color color3,
+			@Nonnull final Color color4,
 			final float textureX,
-			final float textureY, 
-			final float textureWidth, 
-			final float textureHeight, 
+			final float textureY,
+			final float textureWidth,
+			final float textureHeight,
 			final int textureId) {
 		log.fine("addQuad [texId=" + textureId+"]");
 		updateCurrentBatch(textureId);
@@ -463,10 +464,10 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 			return null;
 		}
 	}
-	
+
 	@Nonnull
 	private java.awt.Color niftyColorToAwt(@Nonnull final Color niftyColor) {
-		return new java.awt.Color(niftyColor.getRed(), niftyColor.getBlue(), 
+		return new java.awt.Color(niftyColor.getRed(), niftyColor.getBlue(),
 				niftyColor.getGreen(), niftyColor.getAlpha());
 	}
 
@@ -481,7 +482,7 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 	private class Java2DBatchInternal implements Batch {
 
 		@Nonnull
-		private final BatchQuad[] quads = new BatchQuad[512]; 
+		private final BatchQuad[] quads = new BatchQuad[512];
 		@Nonnull
 		private BlendMode blendMode = BlendMode.BLEND;
 		private int primitiveCount;
@@ -515,22 +516,21 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 
 			for (int i=0; i < primitiveCount; i++) {
 				BatchQuad quad = quads[i];
-				g2d.setPaint(quad.quadPaint);
-				g2d.fillRect(quad.x, quad.y, quad.width, quad.height);
 				if (boundTexture != null && boundTexture.getID() == textureId) {
 					log.fine("batch internal: tex bound [id="+textureId+"]");
 					boundTexture.drawTexture(
-							g2d, 
+							g2d,
 							quad.x,
-							quad.y, 
-							quad.width, 
+							quad.y,
+							quad.width,
 							quad.height,
-							quad.tx, 
+							quad.tx,
 							quad.ty,
 							quad.twidth,
 							quad.theight);
 				} else {
 					log.fine("batch internal: no tex bound");
+					g2d.drawImage(quad.defaultColorImg, quad.x, quad.y, quad.width, quad.height, null);
 				}
 			}
 			g2d.dispose();
@@ -543,20 +543,19 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 
 		@Override
 		public void addQuad(
-				float x, 
-				float y, 
-				float width, 
+				float x,
+				float y,
+				float width,
 				float height,
-				@Nonnull Color color1, 
-				@Nonnull Color color2, 
-				@Nonnull Color color3, 
-				@Nonnull Color color4, 
+				@Nonnull Color color1,
+				@Nonnull Color color2,
+				@Nonnull Color color3,
+				@Nonnull Color color4,
 				float textureX,
-				float textureY, 
-				float textureWidth, 
+				float textureY,
+				float textureWidth,
 				float textureHeight) {
-			//QuadGradientPaint quadPaint = new QuadGradientPaint(color1, color2, color3, color4);
-			Paint quadPaint = new java.awt.Color(color1.getRed(), color1.getGreen(), color1.getBlue(), color1.getAlpha());
+			BufferedImage colorQuad = createInterpolatedColorImage(width, height, color1, color2, color3, color4);
 			quads[primitiveCount++] = new BatchQuad(
 					(int)x,
 					(int)y,
@@ -566,19 +565,36 @@ public class Java2DBatchRenderBackend implements BatchRenderBackend {
 					(int)textureY,
 					(int)textureWidth,
 					(int)textureHeight,
-					quadPaint);
+					colorQuad);
+		}
+
+		// utility methods for Java2DBatchInternal
+
+		private BufferedImage createInterpolatedColorImage(float width, float height, Color c1, Color c2, Color c3, Color c4) {
+			BufferedImage temp = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
+			temp.setRGB(0, 0, niftyColorToAwt(c1).getRGB());
+			temp.setRGB(0, 1, niftyColorToAwt(c2).getRGB());
+			temp.setRGB(1, 1, niftyColorToAwt(c3).getRGB());
+			temp.setRGB(1, 0, niftyColorToAwt(c4).getRGB());
+			int wt = (int) Math.ceil(width), ht = (int) Math.ceil(height);
+			BufferedImage img = new BufferedImage(wt, ht, BufferedImage.TYPE_INT_RGB);
+			Graphics2D g = (Graphics2D) img.createGraphics();
+			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			g.drawImage(temp, 0, 0, wt, ht, null);
+			g.dispose();
+			return img;
 		}
 	}
 
 	private class BatchQuad {
 		int x, y, width, height, tx, ty, twidth, theight;
-		Paint quadPaint;
-		BatchQuad(int x, int y, int width, int height, int tx, int ty, int twidth, int theight, @Nonnull Paint quadPaint) {
+		BufferedImage defaultColorImg;
+		BatchQuad(int x, int y, int width, int height, int tx, int ty, int twidth, int theight, @Nonnull BufferedImage defaultColorImg) {
 			this.x = x; this.y = y;
 			this.width = width; this.height = height;
 			this.tx = tx; this.ty = ty;
 			this.twidth = twidth; this.theight = theight;
-			this.quadPaint = quadPaint;
+			this.defaultColorImg = defaultColorImg;
 		}
 	}
 }

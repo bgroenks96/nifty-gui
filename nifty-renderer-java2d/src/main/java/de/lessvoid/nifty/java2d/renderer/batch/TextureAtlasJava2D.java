@@ -34,12 +34,10 @@ class TextureAtlasJava2D implements TextureJava2D {
 
 	private static final Logger log = Logger.getLogger(TextureAtlasJava2D.class.getName());
 
-	private static volatile int texIdTick = 0xffff;
-
-	private static final int SNAPSHOT_THREAD_POOL_SIZE = 1;
+	private static volatile int texIdTick = 0xfff;
 
 	/**
-	 * 
+	 *
 	 */
 	private final int id, width, height;
 
@@ -59,9 +57,9 @@ class TextureAtlasJava2D implements TextureJava2D {
 	 * @param priority acceleration priority value
 	 */
 	TextureAtlasJava2D(
-			@Nonnull final ImageFactory imageFactory, 
-			final int width, 
-			final int height, 
+			@Nonnull final ImageFactory imageFactory,
+			final int width,
+			final int height,
 			final float priority) {
 		id = texIdTick++; // assign id and increment texIdTick by 1
 		this.imageFactory = imageFactory;
@@ -99,13 +97,13 @@ class TextureAtlasJava2D implements TextureJava2D {
 
 	@Override
 	public void drawTexture(
-			@Nonnull final Graphics2D drawGraphics, 
-			final int destX, 
+			@Nonnull final Graphics2D drawGraphics,
+			final int destX,
 			final int destY,
-			final int destWidth, 
-			final int destHeight, 
-			final int srcX, 
-			final int srcY, 
+			final int destWidth,
+			final int destHeight,
+			final int srcX,
+			final int srcY,
 			final int srcWidth,
 			final int srcHeight) {
 		validate();
@@ -151,8 +149,7 @@ class TextureAtlasJava2D implements TextureJava2D {
 				initTextureVI(width, height);
 			case VolatileImage.IMAGE_RESTORED:
 				log.fine("texture (id="+id+") -> IMAGE_RESTORED - reloading texture data from snapshot");
-				if (snapshot != null)
-					writeImageDataToSurface(snapshot, 0, 0);
+				if (snapshot != null) writeImageDataToSurface(snapshot, 0, 0);
 				break;
 			default:
 				// nothing needs to be done
@@ -189,7 +186,7 @@ class TextureAtlasJava2D implements TextureJava2D {
 	 * A thread pool of size n=1 should be used to ensure that update requests are executed asynchronously.
 	 */
 
-	private final ExecutorService snapshotThreadPool = Executors.newFixedThreadPool(SNAPSHOT_THREAD_POOL_SIZE);
+	private final ExecutorService snapshotThreadPool = Executors.newFixedThreadPool(1);
 
 	private void updateSnapshot() {
 		final Runnable syncUpdateSnapshot = new Runnable() {

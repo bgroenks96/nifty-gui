@@ -18,31 +18,31 @@ import de.lessvoid.nifty.render.batch.spi.ImageFactory;
  * textures but handles render-to operations in software, so it is best used in this
  * case for textures that are non-atlas'd but will be read from in future hardware draw
  * operations.
- * 
+ *
  * @author Brian Groenke
  */
 class TextureImageJava2D implements TextureJava2D {
-	
-	private static volatile int idTick = 0x1f;
-	
+
+	private static volatile int idTick = -0xffff;
+
 	@Nonnull
 	private final ImageFactory imageFactory;
 	private final int id, width, height;
-	
+
 	private float priority;
-	
+
 	@Nullable
 	private BufferedImage texImg;
 	@Nullable
 	private Java2DImage imgRef;
-	
+
 	/**
 	 * @param imageFactory
 	 * @param width
 	 * @param height
 	 * @param priority 0 < priority < 1 where 0 is never hardware accelerated and 1 is max priority
 	 */
-	TextureImageJava2D(@Nonnull final ImageFactory imageFactory, final int width, final int height, float priority) {
+	TextureImageJava2D(@Nonnull final ImageFactory imageFactory, final int width, final int height, final float priority) {
 		this.id = idTick++;
 		this.width = width;
 		this.height = height;
@@ -55,7 +55,7 @@ class TextureImageJava2D implements TextureJava2D {
 	public int getID() {
 		return id;
 	}
-	
+
 	@Override
 	public int getWidth() {
 		return width;
@@ -76,43 +76,46 @@ class TextureImageJava2D implements TextureJava2D {
 		g2d.drawImage(imgRef.getBufferedImage(), x, y, null);
 		g2d.dispose();
 	}
-	
+
 	@Override
 	public void drawTexture(
-			@Nonnull final Graphics2D drawGraphics, 
-			final int destX, 
+			@Nonnull final Graphics2D drawGraphics,
+			final int destX,
 			final int destY,
-			final int destWidth, 
-			final int destHeight, 
-			final int srcX, 
-			final int srcY, 
+			final int destWidth,
+			final int destHeight,
+			final int srcX,
+			final int srcY,
 			final int srcWidth,
 			final int srcHeight) {
 		drawGraphics.drawImage(texImg, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight, null);
 	}
-	
+
 	@Override
 	public void setAccelerationPriority(final float priority) {
 		this.priority = priority;
 	}
-	
+
 	@Override
 	public void clear(@Nonnull final Color clearColor) {
-		
+		Graphics2D g2d = texImg.createGraphics();
+		g2d.setColor(clearColor);
+		g2d.fillRect(0, 0, width, height);
+		g2d.dispose();
 	}
-	
+
 	@Override
 	public void dispose() {
 		texImg.flush();
 		texImg = null;
 		imgRef = null;
 	}
-	
+
 	private void initTextureImage(final int width, final int height) {
 		texImg = getImageFactoryInternal().createNativeBufferedImage(width, height);
 		texImg.setAccelerationPriority(priority);
 	}
-	
+
 	private Java2DImageFactory getImageFactoryInternal() {
 		if (imageFactory instanceof Java2DImageFactory)
 			return (Java2DImageFactory) imageFactory;
