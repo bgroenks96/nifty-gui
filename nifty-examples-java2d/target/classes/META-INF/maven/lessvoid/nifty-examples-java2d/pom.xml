@@ -1,22 +1,20 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>lessvoid</groupId>
     <artifactId>nifty-main</artifactId>
     <version>1.4.2-SNAPSHOT</version>
   </parent>
-  <artifactId>nifty-examples-jogl</artifactId>
+  <artifactId>nifty-examples-java2d</artifactId>
+  <name>nifty-examples-java2d</name>
+  <url>http://maven.apache.org</url>
   <properties>
-    <jogamp.version>2.3.1</jogamp.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-  <name>Nifty Examples for JOGL</name>
   <dependencies>
-  	<dependency>
-  		<groupId>lessvoid</groupId>
-  		<artifactId>nifty-jogl-renderer</artifactId>
-  		<version>1.4.2-SNAPSHOT</version>
-  	</dependency>
-  	<dependency>
+    	<dependency>
   		<groupId>lessvoid</groupId>
   		<artifactId>nifty</artifactId>
   		<version>1.4.2-SNAPSHOT</version>
@@ -42,19 +40,15 @@
       <version>1.4.2-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.jogamp.jogl</groupId>
-      <artifactId>jogl-all-main</artifactId>
-      <version>${jogamp.version}</version>
+      <groupId>lessvoid</groupId>
+      <artifactId>nifty-java2d-renderer</artifactId>
+      <version>1.4.2-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.jogamp.gluegen</groupId>
-      <artifactId>gluegen-rt-main</artifactId>
-      <version>${jogamp.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jogamp.joal</groupId>
-      <artifactId>joal-main</artifactId>
-      <version>${jogamp.version}</version>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

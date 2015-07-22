@@ -19,16 +19,16 @@ import java.util.logging.Logger;
  * @author void
  */
 public class JoglInputSystem implements InputSystem, MouseListener, KeyListener {
-	
+
   private final Logger log = Logger.getLogger(JoglInputSystem.class.getName());
-  
+
   @Nonnull
   private final AwtToNiftyKeyCodeConverter converter = new AwtToNiftyKeyCodeConverter();
 
   // queues to store events received from JOGL in
   @Nonnull
   private final ConcurrentLinkedQueue<MouseInputEvent> mouseEvents = new ConcurrentLinkedQueue<MouseInputEvent>();
-  
+
   @Nonnull
   private final ConcurrentLinkedQueue<KeyboardInputEvent> keyboardEvents = new
       ConcurrentLinkedQueue<KeyboardInputEvent>();
@@ -36,19 +36,15 @@ public class JoglInputSystem implements InputSystem, MouseListener, KeyListener 
   // queues to store events not processed by Nifty in
   @Nonnull
   private final ConcurrentLinkedQueue<MouseInputEvent> mouseEventsOut = new ConcurrentLinkedQueue<MouseInputEvent>();
-  
+
   @Nonnull
   private final ConcurrentLinkedQueue<KeyboardInputEvent> keyboardEventsOut = new
       ConcurrentLinkedQueue<KeyboardInputEvent>();
-      
+
   public JoglInputSystem(@Nonnull final Window newtWindow) {
 	  this.niftyNewtWindow = newtWindow;
-	  
-	  // add JoglInputSystem to Window listeners
-	  newtWindow.addKeyListener(this);
-	  newtWindow.addMouseListener(this);
   }
-  
+
   private Window niftyNewtWindow;
 
   // some booleans to remember if nifty currently has the focus

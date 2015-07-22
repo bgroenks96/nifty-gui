@@ -11,11 +11,11 @@ import de.lessvoid.nifty.render.batch.spi.BatchRenderBackend;
 import de.lessvoid.nifty.render.batch.spi.BatchRenderBackend.Image;
 
 /**
- * 
+ *
  * @author Brian Groenke
  */
 interface TextureJava2D {
-	
+
 	int getID();
 	int getWidth();
 	int getHeight();
@@ -59,6 +59,10 @@ interface TextureJava2D {
 	 * @see {@link BufferedImage.setAccelerationPriority}
 	 */
 	void setAccelerationPriority(float priority);
+	/**
+	 * @return true if this TextureJava2D is configured to invert the Y value of incoming source coordinates.
+	 */
+	boolean invertsYAxis();
 	/**
 	 * Clears this TextureJava2D with the given {@link java.awt.Color}. This method will allocate internal
 	 * image resources if they have not already been initialized.

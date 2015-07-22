@@ -3,14 +3,13 @@ package de.lessvoid.nifty.examples.jogl.test;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
-
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.FPSAnimator;
 
 import de.lessvoid.nifty.Nifty;
@@ -28,7 +27,7 @@ import de.lessvoid.nifty.spi.time.impl.AccurateTimeProvider;
 
 
 public class ChatTest implements ScreenController, GLEventListener {
-	
+
 	private static final Logger log = Logger.getLogger(ChatTest.class.getName());
 
 	public static void main(String[] args) {
@@ -115,6 +114,6 @@ public class ChatTest implements ScreenController, GLEventListener {
 	@Override
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width,
 			int height) {
-		
+
 	}
 }
